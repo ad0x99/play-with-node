@@ -1,4 +1,4 @@
-import { me, post, posts, users } from '../fake-data';
+import { comments, me, post, posts, users } from '../fake-data';
 import { formatSearchString } from '../utils/formatter';
 
 const resolvers = {
@@ -37,6 +37,10 @@ const resolvers = {
 
       return posts;
     },
+
+    comments: (parent, args, ctx, info) => {
+      return comments;
+    },
   },
 
   Post: {
@@ -45,12 +49,38 @@ const resolvers = {
         return user.id === parent.author;
       });
     },
+
+    comments(parent, args, ctx, info) {
+      return comments.filter((comment) => {
+        return comment.post === parent.id;
+      });
+    },
   },
 
   User: {
     posts(parent, args, ctx, info) {
       return posts.filter((post) => {
         return post.author === parent.id;
+      });
+    },
+
+    comments(parent, args, ctx, info) {
+      return comments.filter((comment) => {
+        return comment.author === parent.id;
+      });
+    },
+  },
+
+  Comment: {
+    author(parent, args, ctx, info) {
+      return users.find((user) => {
+        return user.id === parent.author;
+      });
+    },
+
+    post(parent, args, ctx, info) {
+      return posts.find((post) => {
+        return post.id === parent.post;
       });
     },
   },

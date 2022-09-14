@@ -1,5 +1,7 @@
 const typeDefs = `
   type Query {
+    users(name: String): [User!]! 
+    posts(title: String): [Post!]!
     me: User!
     post: Post!
   }

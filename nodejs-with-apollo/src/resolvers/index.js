@@ -1,23 +1,41 @@
+import { me, post, posts, users } from '../fake-data';
+import { formatSearchString } from '../utils/formatter';
+
 const resolvers = {
   Query: {
+    users: (parent, args, ctx, info) => {
+      if (args.name) {
+        return users.filter((user) =>
+          formatSearchString(user.name).includes(formatSearchString(args.name))
+        );
+      }
+
+      return users;
+    },
+
     me: () => {
-      const user = {
-        id: '123',
-        name: 'John',
-        email: '123@example.com',
-        age: 23,
-      };
-      return user;
+      return me;
     },
 
     post: () => {
-      const post = {
-        id: '123',
-        title: 'How to build graphql with nodejs',
-        body: '123@example.com',
-        published: false,
-      };
       return post;
+    },
+
+    posts: (parent, args, ctx, info) => {
+      if (args.title) {
+        const isTitleMatch = posts.filter((post) =>
+          formatSearchString(post.title).includes(
+            formatSearchString(args.title)
+          )
+        );
+        const isBodyMatch = posts.filter((post) =>
+          formatSearchString(post.body).includes(formatSearchString(args.title))
+        );
+
+        return isTitleMatch.length ? isTitleMatch : isBodyMatch;
+      }
+
+      return posts;
     },
   },
 };

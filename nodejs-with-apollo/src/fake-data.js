@@ -20,18 +20,21 @@ const posts = [
     title: 'How to build graphql with nodejs',
     body: '123@example.com',
     published: false,
+    author: '123',
   },
   {
     id: '234',
     title: 'How to setup your vscode',
     body: '123@example.com',
     published: false,
+    author: '234',
   },
   {
     id: '456',
     title: 'CI/CD with Jenkins',
     body: '123@example.com',
     published: true,
+    author: '456',
   },
 ];
 

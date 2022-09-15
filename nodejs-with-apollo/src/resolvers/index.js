@@ -56,13 +56,50 @@ const resolvers = {
 
       const newUser = {
         id: uuidv4(),
-        name: args.name,
-        email: args.email,
-        age: args.age,
+        ...args,
       };
       users.push(newUser);
 
       return newUser;
+    },
+
+    createPost(parent, args, ctx, info) {
+      const isUserExists = users.find((user) => user.id === args.author);
+
+      if (!isUserExists) {
+        throw new Error('Author does not exist');
+      }
+
+      const newPost = {
+        id: uuidv4(),
+        ...args,
+      };
+      posts.push(newPost);
+
+      return newPost;
+    },
+
+    createComment(parent, args, ctx, info) {
+      const isUserExists = users.find((user) => user.id === args.author);
+      const isPostExists = posts.find(
+        (post) => post.id === args.post && post.published === true
+      );
+
+      if (!isUserExists) {
+        throw new Error('Author does not exist');
+      }
+
+      if (!isPostExists) {
+        throw new Error('Post does not exist');
+      }
+
+      const newComment = {
+        id: uuidv4(),
+        ...args,
+      };
+      comments.push(newComment);
+
+      return newComment;
     },
   },
 

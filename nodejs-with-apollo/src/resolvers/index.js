@@ -1,5 +1,6 @@
 import { comments, me, post, posts, users } from '../fake-data';
 import { formatSearchString } from '../utils/formatter';
+import { v4 as uuidv4 } from 'uuid';
 
 const resolvers = {
   Query: {
@@ -40,6 +41,91 @@ const resolvers = {
 
     comments: (parent, args, ctx, info) => {
       return comments;
+    },
+  },
+
+  Mutation: {
+    createUser(parent, args, ctx, info) {
+      const isEmailExists = users.find((user) =>
+        formatSearchString(user.email).includes(
+          formatSearchString(args.data.email)
+        )
+      );
+
+      if (isEmailExists) {
+        throw new Error('Email is already existed');
+      }
+
+      const newUser = {
+        id: uuidv4(),
+        ...args.data,
+      };
+      users.push(newUser);
+
+      return newUser;
+    },
+
+    deleteUser(parent, args, ctx, info) {
+      const userIndex = users.findIndex((user) => user.id === args.id);
+      const postIndex = posts.findIndex((post) => post.author === args.id);
+      const commentIndex = comments.findIndex(
+        (comment) => comment.author === args.id
+      );
+
+      if (userIndex === -1) {
+        throw new Error('User not found');
+      }
+
+      if (postIndex !== -1) {
+        posts.splice(postIndex, 1);
+      }
+
+      if (commentIndex !== -1) {
+        comments.splice(commentIndex, 1);
+      }
+
+      const deletedUser = users.splice(userIndex, 1);
+
+      return deletedUser[0];
+    },
+
+    createPost(parent, args, ctx, info) {
+      const isUserExists = users.find((user) => user.id === args.data.author);
+
+      if (!isUserExists) {
+        throw new Error('Author does not exist');
+      }
+
+      const newPost = {
+        id: uuidv4(),
+        ...args.data,
+      };
+      posts.push(newPost);
+
+      return newPost;
+    },
+
+    createComment(parent, args, ctx, info) {
+      const isUserExists = users.find((user) => user.id === args.data.author);
+      const isPostExists = posts.find(
+        (post) => post.id === args.data.post && post.published === true
+      );
+
+      if (!isUserExists) {
+        throw new Error('Author does not exist');
+      }
+
+      if (!isPostExists) {
+        throw new Error('Post does not exist');
+      }
+
+      const newComment = {
+        id: uuidv4(),
+        ...args.data,
+      };
+      comments.push(newComment);
+
+      return newComment;
     },
   },
 

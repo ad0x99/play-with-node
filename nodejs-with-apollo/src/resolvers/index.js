@@ -5,9 +5,11 @@ import { v4 as uuidv4 } from 'uuid';
 const resolvers = {
   Query: {
     users: (parent, args, ctx, info) => {
-      if (args.name) {
+      if (args.data.name) {
         return users.filter((user) =>
-          formatSearchString(user.name).includes(formatSearchString(args.name))
+          formatSearchString(user.name).includes(
+            formatSearchString(args.data.name)
+          )
         );
       }
 
@@ -26,11 +28,13 @@ const resolvers = {
       if (args.title) {
         const isTitleMatch = posts.filter((post) =>
           formatSearchString(post.title).includes(
-            formatSearchString(args.title)
+            formatSearchString(args.data.title)
           )
         );
         const isBodyMatch = posts.filter((post) =>
-          formatSearchString(post.body).includes(formatSearchString(args.title))
+          formatSearchString(post.body).includes(
+            formatSearchString(args.data.title)
+          )
         );
 
         return isTitleMatch.length ? isTitleMatch : isBodyMatch;
@@ -47,7 +51,9 @@ const resolvers = {
   Mutation: {
     createUser(parent, args, ctx, info) {
       const isEmailExists = users.find((user) =>
-        formatSearchString(user.email).includes(formatSearchString(args.email))
+        formatSearchString(user.email).includes(
+          formatSearchString(args.data.email)
+        )
       );
 
       if (isEmailExists) {
@@ -56,7 +62,7 @@ const resolvers = {
 
       const newUser = {
         id: uuidv4(),
-        ...args,
+        ...args.data,
       };
       users.push(newUser);
 
@@ -64,7 +70,7 @@ const resolvers = {
     },
 
     createPost(parent, args, ctx, info) {
-      const isUserExists = users.find((user) => user.id === args.author);
+      const isUserExists = users.find((user) => user.id === args.data.author);
 
       if (!isUserExists) {
         throw new Error('Author does not exist');
@@ -72,7 +78,7 @@ const resolvers = {
 
       const newPost = {
         id: uuidv4(),
-        ...args,
+        ...args.data,
       };
       posts.push(newPost);
 
@@ -80,9 +86,9 @@ const resolvers = {
     },
 
     createComment(parent, args, ctx, info) {
-      const isUserExists = users.find((user) => user.id === args.author);
+      const isUserExists = users.find((user) => user.id === args.data.author);
       const isPostExists = posts.find(
-        (post) => post.id === args.post && post.published === true
+        (post) => post.id === args.data.post && post.published === true
       );
 
       if (!isUserExists) {
@@ -95,7 +101,7 @@ const resolvers = {
 
       const newComment = {
         id: uuidv4(),
-        ...args,
+        ...args.data,
       };
       comments.push(newComment);
 

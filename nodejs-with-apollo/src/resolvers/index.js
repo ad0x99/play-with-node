@@ -1,5 +1,6 @@
 import { comments, me, post, posts, users } from '../fake-data';
 import { formatSearchString } from '../utils/formatter';
+import { v4 as uuidv4 } from 'uuid';
 
 const resolvers = {
   Query: {
@@ -40,6 +41,28 @@ const resolvers = {
 
     comments: (parent, args, ctx, info) => {
       return comments;
+    },
+  },
+
+  Mutation: {
+    createUser(parent, args, ctx, info) {
+      const isEmailExists = users.find((user) =>
+        formatSearchString(user.email).includes(formatSearchString(args.email))
+      );
+
+      if (isEmailExists) {
+        throw new Error('Email is already existed');
+      }
+
+      const newUser = {
+        id: uuidv4(),
+        name: args.name,
+        email: args.email,
+        age: args.age,
+      };
+      users.push(newUser);
+
+      return newUser;
     },
   },
 

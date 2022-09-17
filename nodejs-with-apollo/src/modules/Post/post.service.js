@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { throwNewError } from '../../helpers';
 
 const PostService = {
-  createPost(parent, args, { models }, info) {
+  createPost(parent, args, { models, pubsub }, info) {
     const { users } = models;
     const isUserExists = users.find((user) => user.id === args.data.author);
 
@@ -15,6 +15,10 @@ const PostService = {
       ...args.data,
     };
     models.posts.push(newPost);
+
+    if (args.data.published) {
+      pubsub.publish('post', { post: newPost });
+    }
 
     return newPost;
   },
@@ -62,4 +66,12 @@ const PostService = {
   },
 };
 
-export { PostService };
+const PostSubscription = {
+  post: {
+    subscribe(_, args, { pubsub }, info) {
+      return pubsub.asyncIterator('post');
+    },
+  },
+};
+
+export { PostService, PostSubscription };

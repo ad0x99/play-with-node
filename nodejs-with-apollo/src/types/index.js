@@ -22,6 +22,7 @@ const typeDefs = `
   }
 
   type Subscription {
+    post: Post!
     comment(postId: ID!): Comment!
   }
 

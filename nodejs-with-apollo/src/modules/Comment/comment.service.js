@@ -27,11 +27,8 @@ const commentService = {
   },
 
   updateComment(parent, args, { models }, info) {
-    const { id, text, post } = args.data;
-
-    const comment = models.comments.find(
-      (comment) => comment.id === id && comment.post === post
-    );
+    const { id, text } = args.data;
+    const comment = models.comments.find((comment) => comment.id === id);
 
     if (!comment) {
       throwNewError('CustomNotFound', 'Comment');

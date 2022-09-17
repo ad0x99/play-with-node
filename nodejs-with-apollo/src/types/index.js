@@ -57,7 +57,6 @@ const typeDefs = `
   input UpdateCommentInput {
     id: ID!
     text: String
-    post: ID!
   }
 
   type User {

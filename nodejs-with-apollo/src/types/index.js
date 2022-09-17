@@ -12,7 +12,10 @@ const typeDefs = `
     deleteUser(id: ID!): User!
 
     createPost(data: CreatePostInput): Post!
+    deletePost(id: ID!): Post!
+
     createComment(data: CreateCommentInput): Comment!
+    deleteComment(id: ID!): Comment!
   }
 
   input CreateUserInput {

@@ -65,4 +65,12 @@ const comments = [
   },
 ];
 
-export { users, me, post, posts, comments };
+const models = {
+  users,
+  me,
+  post,
+  posts,
+  comments,
+};
+
+export default models;

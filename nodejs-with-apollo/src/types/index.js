@@ -21,6 +21,10 @@ const typeDefs = `
     deleteComment(id: ID!): Comment!
   }
 
+  type Subscription {
+    comment(postId: ID!): Comment!
+  }
+
   input CreateUserInput {
     name: String!
     email: String!

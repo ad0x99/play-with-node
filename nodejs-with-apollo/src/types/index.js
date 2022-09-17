@@ -17,6 +17,7 @@ const typeDefs = `
     deletePost(id: ID!): Post!
 
     createComment(data: CreateCommentInput): Comment!
+    updateComment(data: UpdateCommentInput): Comment!
     deleteComment(id: ID!): Comment!
   }
 
@@ -50,6 +51,12 @@ const typeDefs = `
   input CreateCommentInput {
     text: String!
     author: ID!
+    post: ID!
+  }
+
+  input UpdateCommentInput {
+    id: ID!
+    text: String
     post: ID!
   }
 

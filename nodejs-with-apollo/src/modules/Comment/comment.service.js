@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { throwNewError } from '../../helpers';
 
 const commentService = {
   createComment(parent, args, { models }, info) {
@@ -25,6 +26,24 @@ const commentService = {
     comments.push(newComment);
 
     return newComment;
+  },
+
+  updateComment(parent, args, { models }, info) {
+    const { id, text, post } = args.data;
+
+    const comment = models.comments.find(
+      (comment) => comment.id === id && comment.post === post
+    );
+
+    if (!comment) {
+      throwNewError('CustomNotFound', 'Comment');
+    }
+
+    if (text) {
+      comment.text = text;
+    }
+
+    return comment;
   },
 
   deleteComment(parent, args, { models }, info) {

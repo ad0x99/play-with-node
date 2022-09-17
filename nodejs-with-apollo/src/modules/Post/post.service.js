@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { throwNewError } from '../../helpers';
 
 const PostService = {
   createPost(parent, args, { models }, info) {
@@ -16,6 +17,29 @@ const PostService = {
     models.posts.push(newPost);
 
     return newPost;
+  },
+
+  updatePost(parent, args, { models }, info) {
+    const { id, title, body, published } = args.data;
+    const post = models.posts.find((post) => post.id === id);
+
+    if (!post) {
+      throwNewError('CustomNotFound', 'Post');
+    }
+
+    if (title) {
+      post.title = title;
+    }
+
+    if (body) {
+      post.body = body;
+    }
+
+    if (published || !published) {
+      post.published = published;
+    }
+
+    return post;
   },
 
   deletePost(parent, args, { models }, info) {

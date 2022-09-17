@@ -13,6 +13,7 @@ const typeDefs = `
     deleteUser(id: ID!): User!
 
     createPost(data: CreatePostInput): Post!
+    updatePost(data: UpdatePostInput): Post!
     deletePost(id: ID!): Post!
 
     createComment(data: CreateCommentInput): Comment!
@@ -37,6 +38,13 @@ const typeDefs = `
     body: String!
     published: Boolean!
     author: ID!
+  }
+
+  input UpdatePostInput {
+    id: ID!
+    title: String
+    body: String
+    published: Boolean
   }
 
   input CreateCommentInput {

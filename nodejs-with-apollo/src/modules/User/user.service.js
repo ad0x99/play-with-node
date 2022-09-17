@@ -1,9 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
+import { throwNewError } from '../../helpers';
 import { formatSearchString } from '../../utils/formatter';
 
 const UserService = {
   createUser(parent, args, { models }, info) {
-    const users = models.users;
+    const { users } = models;
 
     const isEmailExists = users.find((user) =>
       formatSearchString(user.email).includes(
@@ -12,7 +13,7 @@ const UserService = {
     );
 
     if (isEmailExists) {
-      throw new Error('Email is already existed');
+      throwNewError('CustomAlreadyExisted', 'email');
     }
 
     const newUser = {
@@ -24,10 +25,38 @@ const UserService = {
     return newUser;
   },
 
+  updateUser(parent, args, { models }, info) {
+    const { id, email, name, age } = args.data;
+
+    const user = models.users.find((user) => user.id === id);
+
+    if (!user) {
+      throwNewError('CustomNotFound', 'User');
+    }
+
+    if (email) {
+      const isEmailExisted = models.users.some((user) => user.email === email);
+
+      if (isEmailExisted) {
+        throwNewError('CustomAlreadyExisted', 'email');
+      }
+
+      user.email = email;
+    }
+
+    if (name) {
+      user.name = name;
+    }
+
+    if (age) {
+      user.age = age;
+    }
+
+    return user;
+  },
+
   deleteUser(parent, args, { models }, info) {
-    const users = models.users;
-    const posts = models.posts;
-    const comments = models.comments;
+    const { users, posts, comments } = models.users;
     const userIndex = users.findIndex((user) => user.id === args.id);
     const postIndex = posts.findIndex((post) => post.author === args.id);
     const commentIndex = comments.findIndex(
@@ -35,7 +64,7 @@ const UserService = {
     );
 
     if (userIndex === -1) {
-      throw new Error('User not found');
+      throwNewError('CustomNotFound', 'User');
     }
 
     if (postIndex !== -1) {

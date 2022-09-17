@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
+import { throwNewError } from '../../helpers';
 
 const PostService = {
   createPost(parent, args, { models }, info) {
-    const users = models.users;
+    const { users } = models;
     const isUserExists = users.find((user) => user.id === args.data.author);
 
     if (!isUserExists) {
@@ -18,9 +19,31 @@ const PostService = {
     return newPost;
   },
 
+  updatePost(parent, args, { models }, info) {
+    const { id, title, body, published } = args.data;
+    const post = models.posts.find((post) => post.id === id);
+
+    if (!post) {
+      throwNewError('CustomNotFound', 'Post');
+    }
+
+    if (title) {
+      post.title = title;
+    }
+
+    if (body) {
+      post.body = body;
+    }
+
+    if (published || !published) {
+      post.published = published;
+    }
+
+    return post;
+  },
+
   deletePost(parent, args, { models }, info) {
-    const posts = models.posts;
-    const comments = models.comments;
+    const { posts, comments } = models;
     const postIndex = posts.findIndex((post) => post.id === args.id);
     const commentIndex = comments.findIndex(
       (comment) => comment.post === args.id

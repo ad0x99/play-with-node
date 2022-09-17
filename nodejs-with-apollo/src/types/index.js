@@ -9,6 +9,7 @@ const typeDefs = `
 
   type Mutation {
     createUser(data: CreateUserInput): User!
+    updateUser(data: UpdateUserInput): User!
     deleteUser(id: ID!): User!
 
     createPost(data: CreatePostInput): Post!
@@ -21,6 +22,13 @@ const typeDefs = `
   input CreateUserInput {
     name: String!
     email: String!
+    age: Int
+  }
+
+  input UpdateUserInput {
+    id: ID!
+    name: String
+    email: String
     age: Int
   }
 

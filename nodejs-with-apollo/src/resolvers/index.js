@@ -1,10 +1,11 @@
-import { comments, me, post, posts, users } from '../fake-data';
 import { formatSearchString } from '../utils/formatter';
 import { v4 as uuidv4 } from 'uuid';
 
 const resolvers = {
   Query: {
-    users: (parent, args, ctx, info) => {
+    users: (parent, args, { models }, info) => {
+      const users = models.users;
+
       if (args.name) {
         return users.filter((user) =>
           formatSearchString(user.name).includes(formatSearchString(args.name))
@@ -14,15 +15,17 @@ const resolvers = {
       return users;
     },
 
-    me: () => {
-      return me;
+    me: (parent, args, { models }, info) => {
+      return models.me;
     },
 
-    post: () => {
-      return post;
+    post: (parent, args, { models }, info) => {
+      return models.post;
     },
 
-    posts: (parent, args, ctx, info) => {
+    posts: (parent, args, { models }, info) => {
+      const posts = models.posts;
+
       if (args.title) {
         const isTitleMatch = posts.filter((post) =>
           formatSearchString(post.title).includes(
@@ -39,13 +42,15 @@ const resolvers = {
       return posts;
     },
 
-    comments: (parent, args, ctx, info) => {
-      return comments;
+    comments: (parent, args, { models }, info) => {
+      return models.comments;
     },
   },
 
   Mutation: {
-    createUser(parent, args, ctx, info) {
+    createUser(parent, args, { models }, info) {
+      const users = models.users;
+
       const isEmailExists = users.find((user) =>
         formatSearchString(user.email).includes(
           formatSearchString(args.data.email)
@@ -65,7 +70,10 @@ const resolvers = {
       return newUser;
     },
 
-    deleteUser(parent, args, ctx, info) {
+    deleteUser(parent, args, { models }, info) {
+      const users = models.users;
+      const posts = models.posts;
+      const comments = models.comments;
       const userIndex = users.findIndex((user) => user.id === args.id);
       const postIndex = posts.findIndex((post) => post.author === args.id);
       const commentIndex = comments.findIndex(
@@ -89,7 +97,8 @@ const resolvers = {
       return deletedUser;
     },
 
-    createPost(parent, args, ctx, info) {
+    createPost(parent, args, { models }, info) {
+      const users = models.users;
       const isUserExists = users.find((user) => user.id === args.data.author);
 
       if (!isUserExists) {
@@ -100,12 +109,14 @@ const resolvers = {
         id: uuidv4(),
         ...args.data,
       };
-      posts.push(newPost);
+      models.posts.push(newPost);
 
       return newPost;
     },
 
-    deletePost(parent, args, ctx, info) {
+    deletePost(parent, args, { models }, info) {
+      const posts = models.posts;
+      const comments = models.comments;
       const postIndex = posts.findIndex((post) => post.id === args.id);
       const commentIndex = comments.findIndex(
         (comment) => comment.post === args.id
@@ -123,7 +134,10 @@ const resolvers = {
       return deletedPost;
     },
 
-    createComment(parent, args, ctx, info) {
+    createComment(parent, args, { models }, info) {
+      const posts = models.posts;
+      const users = models.users;
+      const comments = models.comments;
       const isUserExists = users.find((user) => user.id === args.data.author);
       const isPostExists = posts.find(
         (post) => post.id === args.data.post && post.published === true
@@ -146,7 +160,9 @@ const resolvers = {
       return newComment;
     },
 
-    deleteComment(parent, args, ctx, info) {
+    deleteComment(parent, args, { models }, info) {
+      const comments = models.comments;
+
       const commentIndex = comments.findIndex(
         (comment) => comment.id === args.id
       );
@@ -161,42 +177,42 @@ const resolvers = {
   },
 
   Post: {
-    author(parent, args, ctx, info) {
-      return users.find((user) => {
+    author(parent, args, { models }, info) {
+      return models.users.find((user) => {
         return user.id === parent.author;
       });
     },
 
-    comments(parent, args, ctx, info) {
-      return comments.filter((comment) => {
+    comments(parent, args, { models }, info) {
+      return models.comments.filter((comment) => {
         return comment.post === parent.id;
       });
     },
   },
 
   User: {
-    posts(parent, args, ctx, info) {
-      return posts.filter((post) => {
+    posts(parent, args, { models }, info) {
+      return models.posts.filter((post) => {
         return post.author === parent.id;
       });
     },
 
-    comments(parent, args, ctx, info) {
-      return comments.filter((comment) => {
+    comments(parent, args, { models }, info) {
+      return models.comments.filter((comment) => {
         return comment.author === parent.id;
       });
     },
   },
 
   Comment: {
-    author(parent, args, ctx, info) {
-      return users.find((user) => {
+    author(parent, args, { models }, info) {
+      return models.users.find((user) => {
         return user.id === parent.author;
       });
     },
 
-    post(parent, args, ctx, info) {
-      return posts.find((post) => {
+    post(parent, args, { models }, info) {
+      return models.posts.find((post) => {
         return post.id === parent.post;
       });
     },

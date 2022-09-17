@@ -145,6 +145,19 @@ const resolvers = {
 
       return newComment;
     },
+
+    deleteComment(parent, args, ctx, info) {
+      const commentIndex = comments.findIndex(
+        (comment) => comment.id === args.id
+      );
+
+      if (commentIndex === -1) {
+        throw new Error('Post does not exist');
+      }
+
+      const deletedComment = comments.splice(commentIndex, 1)[0];
+      return deletedComment;
+    },
   },
 
   Post: {

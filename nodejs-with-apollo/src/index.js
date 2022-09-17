@@ -1,6 +1,6 @@
 import { GraphQLServer } from 'graphql-yoga';
 import { typeDefs } from './types/index';
-import { resolvers } from './resolvers/index';
+import resolvers from './modules/index';
 import models from './fake-data';
 
 const server = new GraphQLServer({

@@ -84,9 +84,9 @@ const resolvers = {
         comments.splice(commentIndex, 1);
       }
 
-      const deletedUser = users.splice(userIndex, 1);
+      const deletedUser = users.splice(userIndex, 1)[0];
 
-      return deletedUser[0];
+      return deletedUser;
     },
 
     createPost(parent, args, ctx, info) {
@@ -103,6 +103,24 @@ const resolvers = {
       posts.push(newPost);
 
       return newPost;
+    },
+
+    deletePost(parent, args, ctx, info) {
+      const postIndex = posts.findIndex((post) => post.id === args.id);
+      const commentIndex = comments.findIndex(
+        (comment) => comment.post === args.id
+      );
+
+      if (postIndex === -1) {
+        throw new Error('Post does not exist');
+      }
+
+      if (commentIndex !== -1) {
+        comments.splice(commentIndex, 1);
+      }
+
+      const deletedPost = posts.splice(postIndex, 1)[0];
+      return deletedPost;
     },
 
     createComment(parent, args, ctx, info) {

@@ -3,7 +3,7 @@ import { throwNewError } from '../../helpers';
 
 const PostService = {
   createPost(parent, args, { models }, info) {
-    const users = models.users;
+    const { users } = models;
     const isUserExists = users.find((user) => user.id === args.data.author);
 
     if (!isUserExists) {
@@ -43,8 +43,7 @@ const PostService = {
   },
 
   deletePost(parent, args, { models }, info) {
-    const posts = models.posts;
-    const comments = models.comments;
+    const { posts, comments } = models;
     const postIndex = posts.findIndex((post) => post.id === args.id);
     const commentIndex = comments.findIndex(
       (comment) => comment.post === args.id

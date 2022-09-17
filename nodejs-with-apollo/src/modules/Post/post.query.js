@@ -6,7 +6,7 @@ const PostQuery = {
   },
 
   posts: (parent, args, { models }, info) => {
-    const posts = models.posts;
+    const { posts } = models;
 
     if (args.title) {
       const isTitleMatch = posts.filter((post) =>

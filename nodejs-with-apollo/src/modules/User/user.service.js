@@ -4,7 +4,7 @@ import { formatSearchString } from '../../utils/formatter';
 
 const UserService = {
   createUser(parent, args, { models }, info) {
-    const users = models.users;
+    const { users } = models;
 
     const isEmailExists = users.find((user) =>
       formatSearchString(user.email).includes(
@@ -34,7 +34,7 @@ const UserService = {
       throwNewError('CustomNotFound', 'User');
     }
 
-    if (email && email.length) {
+    if (email) {
       const isEmailExisted = models.users.some((user) => user.email === email);
 
       if (isEmailExisted) {
@@ -44,7 +44,7 @@ const UserService = {
       user.email = email;
     }
 
-    if (name && name.length) {
+    if (name) {
       user.name = name;
     }
 
@@ -56,9 +56,7 @@ const UserService = {
   },
 
   deleteUser(parent, args, { models }, info) {
-    const users = models.users;
-    const posts = models.posts;
-    const comments = models.comments;
+    const { users, posts, comments } = models.users;
     const userIndex = users.findIndex((user) => user.id === args.id);
     const postIndex = posts.findIndex((post) => post.author === args.id);
     const commentIndex = comments.findIndex(

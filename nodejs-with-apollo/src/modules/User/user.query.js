@@ -2,7 +2,7 @@ import { formatSearchString } from '../../utils/formatter';
 
 const UserQuery = {
   users: (parent, args, { models }, info) => {
-    const users = models.users;
+    const { users } = models;
 
     if (args.name) {
       return users.filter((user) =>

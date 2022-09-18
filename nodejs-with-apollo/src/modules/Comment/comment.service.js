@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { throwNewError } from '../../helpers';
+import { SUBSCRIPTION_TYPE } from '../../CONST/subscription';
 
-const commentService = {
-  createComment(parent, args, { models }, info) {
+const CommentService = {
+  createComment(_, args, { models, pubsub }, info) {
     const { posts, users, comments } = models;
     const isUserExists = users.find((user) => user.id === args.data.author);
     const isPostExists = posts.find(
@@ -22,11 +23,14 @@ const commentService = {
       ...args.data,
     };
     comments.push(newComment);
+    pubsub.publish(`comment ${args.data.post}`, {
+      comment: { mutation: SUBSCRIPTION_TYPE.CREATED, data: newComment },
+    });
 
     return newComment;
   },
 
-  updateComment(parent, args, { models }, info) {
+  updateComment(_, args, { models, pubsub }, info) {
     const { id, text } = args.data;
     const comment = models.comments.find((comment) => comment.id === id);
 
@@ -38,10 +42,14 @@ const commentService = {
       comment.text = text;
     }
 
+    pubsub.publish(`comment ${comment.post}`, {
+      comment: { mutation: SUBSCRIPTION_TYPE.UPDATED, data: comment },
+    });
+
     return comment;
   },
 
-  deleteComment(parent, args, { models }, info) {
+  deleteComment(_, args, { models, pubsub }, info) {
     const { comments } = models;
 
     const commentIndex = comments.findIndex(
@@ -52,9 +60,30 @@ const commentService = {
       throw new Error('Post does not exist');
     }
 
-    const deletedComment = comments.splice(commentIndex, 1)[0];
-    return deletedComment;
+    const [comment] = comments.splice(commentIndex, 1);
+
+    pubsub.publish(`comment ${comment.post}`, {
+      comment: { mutation: SUBSCRIPTION_TYPE.DELETED, data: comment },
+    });
+
+    return comment;
   },
 };
 
-export { commentService };
+const CommentSubscription = {
+  comment: {
+    subscribe(_, args, { models, pubsub }, info) {
+      const post = models.posts.find(
+        (post) => post.id === args.postId && post.published === true
+      );
+
+      if (!post) {
+        throwNewError('CustomNotFound', 'Post');
+      }
+
+      return pubsub.asyncIterator(`comment ${args.postId}`);
+    },
+  },
+};
+
+export { CommentService, CommentSubscription };

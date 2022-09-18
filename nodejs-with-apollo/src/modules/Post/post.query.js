@@ -1,4 +1,4 @@
-import { formatSearchString } from '../../utils/formatter';
+import { formatString } from '../../utils/formatter';
 
 const PostQuery = {
   post: (parent, args, { models }, info) => {
@@ -10,10 +10,10 @@ const PostQuery = {
 
     if (args.title) {
       const isTitleMatch = posts.filter((post) =>
-        formatSearchString(post.title).includes(formatSearchString(args.title))
+        formatString(post.title).includes(formatString(args.title))
       );
       const isBodyMatch = posts.filter((post) =>
-        formatSearchString(post.body).includes(formatSearchString(args.title))
+        formatString(post.body).includes(formatString(args.title))
       );
 
       return isTitleMatch.length ? isTitleMatch : isBodyMatch;

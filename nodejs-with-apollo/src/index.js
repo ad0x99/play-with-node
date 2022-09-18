@@ -1,7 +1,7 @@
 import { GraphQLServer, PubSub } from 'graphql-yoga';
 import { typeDefs } from './types/index';
 import resolvers from './modules/index';
-import models from './fake-data';
+import { models } from './db/index';
 
 const pubsub = new PubSub();
 

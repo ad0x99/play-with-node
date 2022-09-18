@@ -22,7 +22,7 @@ const typeDefs = `
   }
 
   type Subscription {
-    post: Post!
+    post: PostSubscriptionPayload!
     comment(postId: ID!): Comment!
   }
 
@@ -88,6 +88,12 @@ const typeDefs = `
     author: User!
     post: Post!
   }
+
+  type PostSubscriptionPayload {
+    mutation: String!
+    data: Post!
+  }
+
 `;
 
 export { typeDefs };

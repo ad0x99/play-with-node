@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { SUBSCRIPTION_TYPE } from '../../CONST/subscription';
 import { throwNewError } from '../../helpers';
 
 const PostService = {
@@ -17,15 +18,18 @@ const PostService = {
     models.posts.push(newPost);
 
     if (args.data.published) {
-      pubsub.publish('post', { post: newPost });
+      pubsub.publish('post', {
+        post: { mutation: SUBSCRIPTION_TYPE.CREATED, data: newPost },
+      });
     }
 
     return newPost;
   },
 
-  updatePost(parent, args, { models }, info) {
+  updatePost(parent, args, { models, pubsub }, info) {
     const { id, title, body, published } = args.data;
     const post = models.posts.find((post) => post.id === id);
+    const originalPost = { ...post };
 
     if (!post) {
       throwNewError('CustomNotFound', 'Post');
@@ -39,14 +43,28 @@ const PostService = {
       post.body = body;
     }
 
-    if (published || !published) {
+    if (typeof published === 'boolean') {
       post.published = published;
+
+      if (originalPost.published && !post.published) {
+        pubsub.publish('post', {
+          post: { mutation: SUBSCRIPTION_TYPE.DELETED, data: originalPost },
+        });
+      } else if (!originalPost.published && post.published) {
+        pubsub.publish('post', {
+          post: { mutation: SUBSCRIPTION_TYPE.CREATED, data: post },
+        });
+      }
+    } else if (post.published) {
+      pubsub.publish('post', {
+        post: { mutation: SUBSCRIPTION_TYPE.UPDATED, data: post },
+      });
     }
 
     return post;
   },
 
-  deletePost(parent, args, { models }, info) {
+  deletePost(parent, args, { models, pubsub }, info) {
     const { posts, comments } = models;
     const postIndex = posts.findIndex((post) => post.id === args.id);
     const commentIndex = comments.findIndex(
@@ -61,8 +79,15 @@ const PostService = {
       comments.splice(commentIndex, 1);
     }
 
-    const deletedPost = posts.splice(postIndex, 1)[0];
-    return deletedPost;
+    const [post] = posts.splice(postIndex, 1);
+
+    if (post.published) {
+      pubsub.publish('post', {
+        post: { mutation: SUBSCRIPTION_TYPE.DELETED, data: post },
+      });
+    }
+
+    return post;
   },
 };
 

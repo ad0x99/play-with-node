@@ -23,7 +23,7 @@ const typeDefs = `
 
   type Subscription {
     post: PostSubscriptionPayload!
-    comment(postId: ID!): Comment!
+    comment(postId: ID!): CommentSubscriptionPayload!
   }
 
   input CreateUserInput {
@@ -94,6 +94,10 @@ const typeDefs = `
     data: Post!
   }
 
+  type CommentSubscriptionPayload {
+    mutation: String!
+    data: Comment!
+  }
 `;
 
 export { typeDefs };

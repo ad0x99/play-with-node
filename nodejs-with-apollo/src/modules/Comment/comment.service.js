@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { throwNewError } from '../../helpers';
+import { SUBSCRIPTION_TYPE } from '../../CONST/subscription';
 
 const CommentService = {
   createComment(_, args, { models, pubsub }, info) {
@@ -22,12 +23,14 @@ const CommentService = {
       ...args.data,
     };
     comments.push(newComment);
-    pubsub.publish(`comment ${args.data.post}`, { comment: newComment });
+    pubsub.publish(`comment ${args.data.post}`, {
+      comment: { mutation: SUBSCRIPTION_TYPE.CREATED, data: newComment },
+    });
 
     return newComment;
   },
 
-  updateComment(_, args, { models }, info) {
+  updateComment(_, args, { models, pubsub }, info) {
     const { id, text } = args.data;
     const comment = models.comments.find((comment) => comment.id === id);
 
@@ -39,10 +42,14 @@ const CommentService = {
       comment.text = text;
     }
 
+    pubsub.publish(`comment ${comment.post}`, {
+      comment: { mutation: SUBSCRIPTION_TYPE.UPDATED, data: comment },
+    });
+
     return comment;
   },
 
-  deleteComment(_, args, { models }, info) {
+  deleteComment(_, args, { models, pubsub }, info) {
     const { comments } = models;
 
     const commentIndex = comments.findIndex(
@@ -53,8 +60,13 @@ const CommentService = {
       throw new Error('Post does not exist');
     }
 
-    const deletedComment = comments.splice(commentIndex, 1)[0];
-    return deletedComment;
+    const [comment] = comments.splice(commentIndex, 1);
+
+    pubsub.publish(`comment ${comment.post}`, {
+      comment: { mutation: SUBSCRIPTION_TYPE.DELETED, data: comment },
+    });
+
+    return comment;
   },
 };
 

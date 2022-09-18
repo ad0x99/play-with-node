@@ -19,7 +19,27 @@ chmod +x script.sh
 ./script.sh
 ```
 
-4. Start the application
+4. Prisma Setup
+
+- Install Prisma
+
+```bash
+npm i -g prisma
+```
+
+- Generate Prisma artifacts
+
+```bash
+prisma generate
+```
+
+- Push Prisma models to database
+
+```bash
+prisma db push
+```
+
+5. Start the application
 
 - After your Docker container is started
 - Then run this command to start the application

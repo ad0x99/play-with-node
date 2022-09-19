@@ -1,15 +1,11 @@
-const User = {
+const UserFieldResolvers = {
   posts(parent, args, { models }, info) {
-    return models.posts.filter((post) => {
-      return post.author === parent.id;
-    });
+    return models.post.findMany({ where: { author: parent.id } });
   },
 
   comments(parent, args, { models }, info) {
-    return models.comments.filter((comment) => {
-      return comment.author === parent.id;
-    });
+    return models.comment.findMany({ where: { author: parent.id } });
   },
 };
 
-export { User };
+export { UserFieldResolvers };

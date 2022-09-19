@@ -1,6 +1,6 @@
 const PostFieldResolvers = {
   author(parent, args, { models }, info) {
-    return models.user.findMany({ where: { id: parent.author } });
+    return models.user.findUnique({ where: { id: parent.author } });
   },
 
   comments(parent, args, { models }, info) {

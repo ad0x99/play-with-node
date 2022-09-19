@@ -3,7 +3,7 @@ type Query {
   posts(title: String): [Post!]!
   me: User!
   post(id: ID!): Post!
-  comments: [Comment!]!
+  comments(data: GetCommentInput): [Comment!]!
 }
 
 type Mutation {
@@ -52,6 +52,11 @@ input UpdatePostInput {
   published: Boolean
 }
 
+input GetCommentInput {
+  author: ID
+  post: ID
+}
+
 input CreateCommentInput {
   text: String!
   author: ID!
@@ -88,18 +93,12 @@ type Comment {
   post: Post!
 }
 
-enum SubscriptionType {
-  CREATED
-  UPDATED
-  DELETED
-}
-
 type PostSubscriptionPayload {
-  mutation: SubscriptionType!
+  mutation: String!
   data: Post!
 }
 
 type CommentSubscriptionPayload {
-  mutation: SubscriptionType!
+  mutation: String!
   data: Comment!
 }

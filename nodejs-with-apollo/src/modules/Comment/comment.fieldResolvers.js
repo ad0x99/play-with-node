@@ -1,15 +1,11 @@
-const Comment = {
+const CommentFieldResolvers = {
   author(parent, args, { models }, info) {
-    return models.users.find((user) => {
-      return user.id === parent.author;
-    });
+    return models.user.findUnique({ where: { id: parent.author } });
   },
 
   post(parent, args, { models }, info) {
-    return models.posts.find((post) => {
-      return post.id === parent.post;
-    });
+    return models.post.findUnique({ where: { id: parent.post } });
   },
 };
 
-export { Comment };
+export { CommentFieldResolvers };

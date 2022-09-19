@@ -2,93 +2,108 @@ import { v4 as uuidv4 } from 'uuid';
 import { SUBSCRIPTION_TYPE } from '../../CONST/subscription';
 import { throwNewError } from '../../helpers';
 
-const PostService = {
-  createPost(parent, args, { models, pubsub }, info) {
-    const { users } = models;
-    const isUserExists = users.find((user) => user.id === args.data.author);
+const getOnePost = async (parent, { id }, { models }, info) => {
+  return models.post.findUnique({ where: { id } });
+};
 
-    if (!isUserExists) {
-      throw new Error('Author does not exist');
-    }
+const getPosts = async (parent, args, { models }, info) => {
+  const conditions = {};
 
-    const newPost = {
-      id: uuidv4(),
-      ...args.data,
-    };
-    models.posts.push(newPost);
+  if (args.title) {
+    conditions.OR = [
+      { title: { contains: args.title } },
+      { body: { contains: args.title } },
+    ];
+  }
 
-    if (args.data.published) {
-      pubsub.publish('post', {
-        post: { mutation: SUBSCRIPTION_TYPE.CREATED, data: newPost },
-      });
-    }
+  const posts = await models.post.findMany({ where: conditions });
+  return posts;
+};
 
-    return newPost;
-  },
+const createPost = async (parent, args, { models, pubsub }, info) => {
+  const isUserExists = await models.user.findUnique({
+    where: { id: args.data.author },
+  });
 
-  updatePost(parent, args, { models, pubsub }, info) {
-    const { id, title, body, published } = args.data;
-    const post = models.posts.find((post) => post.id === id);
-    const originalPost = { ...post };
+  if (!isUserExists) {
+    throwNewError('CustomNotFound', 'Author');
+  }
 
-    if (!post) {
-      throwNewError('CustomNotFound', 'Post');
-    }
+  const post = await models.post.create({
+    data: { id: uuidv4(), ...args.data },
+  });
 
-    if (title) {
-      post.title = title;
-    }
+  if (args.data.published) {
+    pubsub.publish('post', {
+      post: { mutation: SUBSCRIPTION_TYPE.CREATED, data: post },
+    });
+  }
 
-    if (body) {
-      post.body = body;
-    }
+  return post;
+};
 
-    if (typeof published === 'boolean') {
-      post.published = published;
+const updatePost = async (parent, args, { models, pubsub }, info) => {
+  const { id, title, body, published } = args.data;
+  const currentPost = await models.post.findUnique({ where: { id } });
+  const conditions = {};
 
-      if (originalPost.published && !post.published) {
-        pubsub.publish('post', {
-          post: { mutation: SUBSCRIPTION_TYPE.DELETED, data: originalPost },
-        });
-      } else if (!originalPost.published && post.published) {
-        pubsub.publish('post', {
-          post: { mutation: SUBSCRIPTION_TYPE.CREATED, data: post },
-        });
-      }
-    } else if (post.published) {
-      pubsub.publish('post', {
-        post: { mutation: SUBSCRIPTION_TYPE.UPDATED, data: post },
-      });
-    }
+  if (!currentPost) {
+    throwNewError('CustomNotFound', 'Post');
+  }
 
-    return post;
-  },
+  if (title) {
+    conditions.title = title;
+  }
 
-  deletePost(parent, args, { models, pubsub }, info) {
-    const { posts, comments } = models;
-    const postIndex = posts.findIndex((post) => post.id === args.id);
-    const commentIndex = comments.findIndex(
-      (comment) => comment.post === args.id
-    );
+  if (body) {
+    conditions.body = body;
+  }
 
-    if (postIndex === -1) {
-      throw new Error('Post does not exist');
-    }
+  if (typeof published === 'boolean') {
+    conditions.published = published;
+  }
 
-    if (commentIndex !== -1) {
-      comments.splice(commentIndex, 1);
-    }
+  if (currentPost.published && !published) {
+    pubsub.publish('post', {
+      post: { mutation: SUBSCRIPTION_TYPE.DELETED, data: currentPost },
+    });
+  } else if (!currentPost.published && published) {
+    pubsub.publish('post', {
+      post: { mutation: SUBSCRIPTION_TYPE.CREATED, data: currentPost },
+    });
+  } else {
+    pubsub.publish('post', {
+      post: { mutation: SUBSCRIPTION_TYPE.UPDATED, data: currentPost },
+    });
+  }
 
-    const [post] = posts.splice(postIndex, 1);
+  const post = await models.post.update({
+    where: { id },
+    data: { ...conditions },
+  });
 
-    if (post.published) {
-      pubsub.publish('post', {
-        post: { mutation: SUBSCRIPTION_TYPE.DELETED, data: post },
-      });
-    }
+  return post;
+};
 
-    return post;
-  },
+const deletePost = async (parent, { id }, { models, pubsub }, info) => {
+  const isPostExist = await models.post.findUnique({ where: { id } });
+
+  if (!isPostExist) {
+    throwNewError('CustomNotExist', 'post');
+  }
+
+  if (isPostExist.published) {
+    pubsub.publish('post', {
+      post: { mutation: SUBSCRIPTION_TYPE.DELETED, data: isPostExist },
+    });
+  }
+
+  const [post] = await Promise.all([
+    models.post.delete({ where: { id } }),
+    models.comment.deleteMany({ where: { postId: id } }),
+  ]);
+
+  return post;
 };
 
 const PostSubscription = {
@@ -99,4 +114,11 @@ const PostSubscription = {
   },
 };
 
-export { PostService, PostSubscription };
+export {
+  getOnePost,
+  getPosts,
+  createPost,
+  updatePost,
+  deletePost,
+  PostSubscription,
+};

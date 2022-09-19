@@ -1,84 +1,101 @@
 import { v4 as uuidv4 } from 'uuid';
 import { throwNewError } from '../../helpers';
-import { formatSearchString } from '../../utils/formatter';
+import { formatString } from '../../utils/formatter';
 
-const UserService = {
-  createUser(parent, args, { models }, info) {
-    const { users } = models;
+const users = async (parent, args, { models }, info) => {
+  const conditions = {};
 
-    const isEmailExists = users.find((user) =>
-      formatSearchString(user.email).includes(
-        formatSearchString(args.data.email)
-      )
-    );
+  if (args.name) {
+    conditions.name = { contains: args.name };
+  }
 
-    if (isEmailExists) {
+  const users = await models.user.findMany({
+    where: conditions,
+    orderBy: { name: 'asc' },
+  });
+  return users;
+};
+
+// TODO: this will be updated in the upcoming features
+const me = async (parent, args, { models }, info) => {
+  const me = {
+    id: '124adcb3-f243-4be7-9dd0-1dbbfb89ba8b',
+    name: 'Anh Duc',
+    email: 'anh.duc@gmail.com',
+    age: 23,
+  };
+  return me;
+};
+
+const createUser = async (parent, args, { models }, info) => {
+  const isEmailExist = await models.user.findUnique({
+    where: { email: args.data.email },
+  });
+
+  if (isEmailExist) {
+    throwNewError('CustomAlreadyExisted', 'email');
+  }
+
+  const newUser = await models.user.create({
+    data: {
+      id: uuidv4(),
+      email: formatString(args.data.email),
+      ...args.data,
+    },
+  });
+  return newUser;
+};
+
+const updateUser = async (parent, args, { models }, info) => {
+  const { id, email, name, age } = args.data;
+  const data = {};
+
+  const isUserExist = models.user.findUnique({ where: { id } });
+
+  if (!isUserExist) {
+    throwNewError('CustomNotFound', 'User');
+  }
+
+  if (email) {
+    const isEmailExist = await models.user.findUnique({
+      where: { email },
+    });
+    if (isEmailExist) {
       throwNewError('CustomAlreadyExisted', 'email');
     }
 
-    const newUser = {
-      id: uuidv4(),
-      ...args.data,
-    };
-    users.push(newUser);
+    data.email = email;
+  }
 
-    return newUser;
-  },
+  if (name) {
+    data.name = name;
+  }
 
-  updateUser(parent, args, { models }, info) {
-    const { id, email, name, age } = args.data;
+  if (age) {
+    data.age = age;
+  }
 
-    const user = models.users.find((user) => user.id === id);
-
-    if (!user) {
-      throwNewError('CustomNotFound', 'User');
-    }
-
-    if (email) {
-      const isEmailExisted = models.users.some((user) => user.email === email);
-
-      if (isEmailExisted) {
-        throwNewError('CustomAlreadyExisted', 'email');
-      }
-
-      user.email = email;
-    }
-
-    if (name) {
-      user.name = name;
-    }
-
-    if (age) {
-      user.age = age;
-    }
-
-    return user;
-  },
-
-  deleteUser(parent, args, { models }, info) {
-    const { users, posts, comments } = models.users;
-    const userIndex = users.findIndex((user) => user.id === args.id);
-    const postIndex = posts.findIndex((post) => post.author === args.id);
-    const commentIndex = comments.findIndex(
-      (comment) => comment.author === args.id
-    );
-
-    if (userIndex === -1) {
-      throwNewError('CustomNotFound', 'User');
-    }
-
-    if (postIndex !== -1) {
-      posts.splice(postIndex, 1);
-    }
-
-    if (commentIndex !== -1) {
-      comments.splice(commentIndex, 1);
-    }
-
-    const deletedUser = users.splice(userIndex, 1)[0];
-
-    return deletedUser;
-  },
+  const user = await models.user.update({
+    where: { id },
+    data: { ...data },
+  });
+  return user;
 };
 
-export { UserService };
+const deleteUser = async (parent, { id }, { models }, info) => {
+  const isUserExist = await models.user.findUnique({ where: { id } });
+
+  if (!isUserExist) {
+    throwNewError('CustomNotFound', 'User');
+  }
+
+  await Promise.all([
+    models.user.delete({ where: { id } }),
+    models.post.deleteMany({ where: { author: id } }),
+    models.comment.deleteMany({ where: { author: id } }),
+  ]);
+
+  return isUserExist;
+};
+
+export { createUser, updateUser, deleteUser, users, me };

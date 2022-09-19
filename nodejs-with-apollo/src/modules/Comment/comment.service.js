@@ -2,88 +2,117 @@ import { v4 as uuidv4 } from 'uuid';
 import { throwNewError } from '../../helpers';
 import { SUBSCRIPTION_TYPE } from '../../CONST/subscription';
 
-const CommentService = {
-  createComment(_, args, { models, pubsub }, info) {
-    const { posts, users, comments } = models;
-    const isUserExists = users.find((user) => user.id === args.data.author);
-    const isPostExists = posts.find(
-      (post) => post.id === args.data.post && post.published === true
-    );
+const getComments = async (parent, { data }, { models }, info) => {
+  const conditions = {};
 
-    if (!isUserExists) {
-      throw new Error('Author does not exist');
-    }
+  if (data && data.author) {
+    conditions.author = data.author;
+  }
 
-    if (!isPostExists) {
-      throw new Error('Post does not exist');
-    }
+  if (data && data.post) {
+    conditions.post = data.post;
+  }
 
-    const newComment = {
-      id: uuidv4(),
-      ...args.data,
-    };
-    comments.push(newComment);
-    pubsub.publish(`comment ${args.data.post}`, {
-      comment: { mutation: SUBSCRIPTION_TYPE.CREATED, data: newComment },
-    });
+  const comments = await models.comment.findMany({ where: conditions });
 
-    return newComment;
-  },
+  return comments;
+};
 
-  updateComment(_, args, { models, pubsub }, info) {
-    const { id, text } = args.data;
-    const comment = models.comments.find((comment) => comment.id === id);
+const createComment = async (_, args, { models, pubsub }, info) => {
+  const isUserExists = await models.user.findUnique({
+    where: { id: args.data.author },
+  });
+  const isPostExists = await models.post.findMany({
+    where: { id: args.data.post, published: true },
+  });
 
-    if (!comment) {
-      throwNewError('CustomNotFound', 'Comment');
-    }
+  if (!isUserExists) {
+    throwNewError('CustomNotExist', 'author');
+  }
 
-    if (text) {
-      comment.text = text;
-    }
+  if (!isPostExists.length) {
+    throwNewError('CustomNotExist', 'post');
+  }
 
-    pubsub.publish(`comment ${comment.post}`, {
-      comment: { mutation: SUBSCRIPTION_TYPE.UPDATED, data: comment },
-    });
+  const data = {
+    id: uuidv4(),
+    text: args.data.text,
+    author: args.data.author,
+    post: args.data.post,
+  };
 
-    return comment;
-  },
+  const comment = await models.comment.create({
+    data,
+  });
 
-  deleteComment(_, args, { models, pubsub }, info) {
-    const { comments } = models;
+  pubsub.publish(`comment ${args.data.post}`, {
+    comment: { mutation: SUBSCRIPTION_TYPE.CREATED, data: comment },
+  });
 
-    const commentIndex = comments.findIndex(
-      (comment) => comment.id === args.id
-    );
+  return comment;
+};
 
-    if (commentIndex === -1) {
-      throw new Error('Post does not exist');
-    }
+const updateComment = async (_, args, { models, pubsub }, info) => {
+  const { id, text } = args.data;
+  const isCommentExist = models.comment.findUnique({ where: { id } });
+  const data = {};
 
-    const [comment] = comments.splice(commentIndex, 1);
+  if (!isCommentExist) {
+    throwNewError('CustomNotExist', 'comment');
+  }
 
-    pubsub.publish(`comment ${comment.post}`, {
-      comment: { mutation: SUBSCRIPTION_TYPE.DELETED, data: comment },
-    });
+  if (text) {
+    data.text = text;
+  }
 
-    return comment;
-  },
+  const comment = await models.comment.update({
+    where: { id },
+    data,
+  });
+
+  pubsub.publish(`comment ${comment.post}`, {
+    comment: { mutation: SUBSCRIPTION_TYPE.UPDATED, data: comment },
+  });
+
+  return comment;
+};
+
+const deleteComment = async (_, { id }, { models, pubsub }, info) => {
+  const isCommentExist = models.comment.findUnique({ where: { id } });
+
+  if (!isCommentExist) {
+    throwNewError('CustomNotExist', 'comment');
+  }
+
+  const comment = await models.comment.delete({ where: { id } });
+
+  pubsub.publish(`comment ${comment.post}`, {
+    comment: { mutation: SUBSCRIPTION_TYPE.DELETED, data: comment },
+  });
+
+  return comment;
 };
 
 const CommentSubscription = {
   comment: {
-    subscribe(_, args, { models, pubsub }, info) {
-      const post = models.posts.find(
-        (post) => post.id === args.postId && post.published === true
-      );
+    subscribe(_, { postId }, { models, pubsub }, info) {
+      const post = models.post.findUnique({
+        where: { id: postId, published: true },
+      });
 
       if (!post) {
         throwNewError('CustomNotFound', 'Post');
       }
 
-      return pubsub.asyncIterator(`comment ${args.postId}`);
+      return pubsub.asyncIterator(`comment ${postId}`);
     },
   },
 };
 
-export { CommentService, CommentSubscription };
+export {
+  getComments,
+  createComment,
+  updateComment,
+  deleteComment,
+  CommentSubscription,
+};

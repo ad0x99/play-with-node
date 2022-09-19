@@ -3,8 +3,8 @@ const typeDefs = `
     users(name: String): [User!]! 
     posts(title: String): [Post!]!
     me: User!
-    post: Post!
-    comments: [Comment!]!
+    post(id: ID!): Post!
+    comments(data: GetCommentInput): [Comment!]!
   }
 
   type Mutation {
@@ -51,6 +51,11 @@ const typeDefs = `
     title: String
     body: String
     published: Boolean
+  }
+
+  input GetCommentInput {
+    author: ID
+    post: ID
   }
 
   input CreateCommentInput {

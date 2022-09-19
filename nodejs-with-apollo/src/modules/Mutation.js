@@ -1,7 +1,7 @@
 import { UserMutation } from './User/user.resolver';
-import { PostService } from './Post/post.service';
 import { CommentService } from './Comment/comment.service';
+import { PostMutation } from './Post/post.resolver';
 
-const Mutation = { ...UserMutation, ...PostService, ...CommentService };
+const Mutation = { ...UserMutation, ...PostMutation, ...CommentService };
 
 export { Mutation };

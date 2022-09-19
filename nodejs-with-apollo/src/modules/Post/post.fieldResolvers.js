@@ -1,15 +1,11 @@
-const Post = {
+const PostFieldResolvers = {
   author(parent, args, { models }, info) {
-    return models.users.find((user) => {
-      return user.id === parent.author;
-    });
+    return models.user.findMany({ where: { id: parent.author } });
   },
 
   comments(parent, args, { models }, info) {
-    return models.comments.filter((comment) => {
-      return comment.post === parent.id;
-    });
+    return models.comment.findMany({ where: { post: parent.id } });
   },
 };
 
-export { Post };
+export { PostFieldResolvers };

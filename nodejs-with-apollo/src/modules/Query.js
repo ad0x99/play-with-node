@@ -1,6 +1,6 @@
 import { UserQuery } from './User/user.resolver';
-import { PostQuery } from './Post/post.query';
 import { CommentQuery } from './Comment/comment.query';
+import { PostQuery } from './Post/post.resolver';
 
 const Query = { ...UserQuery, ...PostQuery, ...CommentQuery };
 

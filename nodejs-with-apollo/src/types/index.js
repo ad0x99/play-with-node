@@ -3,7 +3,7 @@ const typeDefs = `
     users(name: String): [User!]! 
     posts(title: String): [Post!]!
     me: User!
-    post: Post!
+    post(id: ID!): Post!
     comments: [Comment!]!
   }
 

@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.19"
   }
 }

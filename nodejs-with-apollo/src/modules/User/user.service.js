@@ -1,8 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { throwNewError } from '../../helpers';
+import { isAuthenticated } from '../../utils/authentication';
 import { formatString } from '../../utils/formatter';
 
-const users = async (parent, args, { models }, info) => {
+const users = async (parent, args, { models, request }, info) => {
+  await isAuthenticated(request, models);
+
   const conditions = {};
 
   if (args.name) {
@@ -27,7 +30,9 @@ const me = async (parent, args, { models }, info) => {
   return me;
 };
 
-const createUser = async (parent, args, { models }, info) => {
+const createUser = async (parent, args, { models, request }, info) => {
+  await isAuthenticated(request, models);
+
   const isEmailExist = await models.user.findUnique({
     where: { email: args.data.email },
   });
@@ -46,7 +51,9 @@ const createUser = async (parent, args, { models }, info) => {
   return newUser;
 };
 
-const updateUser = async (parent, args, { models }, info) => {
+const updateUser = async (parent, args, { models, request }, info) => {
+  await isAuthenticated(request, models);
+
   const { id, email, name, age } = args.data;
   const data = {};
 
@@ -77,12 +84,14 @@ const updateUser = async (parent, args, { models }, info) => {
 
   const user = await models.user.update({
     where: { id },
-    data: { ...data },
+    data: { ...data, updatedAt: Date.now() },
   });
   return user;
 };
 
-const deleteUser = async (parent, { id }, { models }, info) => {
+const deleteUser = async (parent, { id }, { models, request }, info) => {
+  await isAuthenticated(request, models);
+
   const isUserExist = await models.user.findUnique({ where: { id } });
 
   if (!isUserExist) {

@@ -19,6 +19,9 @@ const typeDefs = `
     createComment(data: CreateCommentInput): Comment!
     updateComment(data: UpdateCommentInput): Comment!
     deleteComment(id: ID!): Comment!
+
+    register(input: RegisterInput): User!
+    login(input: LoginInput): Login!
   }
 
   type Subscription {
@@ -69,6 +72,8 @@ const typeDefs = `
     text: String
   }
 
+  scalar Date
+
   type User {
     id: ID!
     name: String!
@@ -76,6 +81,8 @@ const typeDefs = `
     age: Int
     posts: [Post!]!
     comments: [Comment!]!
+    createdAt: Date!
+    updatedAt: Date!
   }
 
   type Post {
@@ -85,6 +92,8 @@ const typeDefs = `
     published: Boolean!
     author: User!
     comments: [Comment!]!
+    createdAt: Date!
+    updatedAt: Date!
   }
 
   type Comment {
@@ -92,6 +101,8 @@ const typeDefs = `
     text: String!
     author: User!
     post: Post!
+    createdAt: Date!
+    updatedAt: Date!
   }
 
   type PostSubscriptionPayload {
@@ -102,6 +113,24 @@ const typeDefs = `
   type CommentSubscriptionPayload {
     mutation: String!
     data: Comment!
+  }
+
+  type Login {
+    id: ID!
+    name: String!
+    email: String!
+    token: String!
+  }
+
+  input RegisterInput {
+    name: String!
+    email: String!
+    password: String!
+  }
+
+  input LoginInput {
+    email: String!
+    password: String!
   }
 `;
 

@@ -10,7 +10,7 @@ const getMsgForProperty = (constraintsType, property) => {
 };
 
 const throwNewError = (constraintsType, property, msg) => {
-  const errorMsg = msg || getMsgForProperty(constraintsType, property);
+  const errorMsg = msg ? msg : getMsgForProperty(constraintsType, property);
   throw new Error(errorMsg);
 };
 

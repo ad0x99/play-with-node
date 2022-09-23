@@ -1,12 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
 import { SUBSCRIPTION_TYPE } from '../../CONST/subscription';
 import { throwNewError } from '../../helpers';
+import { isAuthenticated } from '../../utils/authentication';
 
-const getOnePost = async (parent, { id }, { models }, info) => {
+const getOnePost = async (parent, { id }, { models, request }, info) => {
+  await isAuthenticated(request, models);
+
   return models.post.findUnique({ where: { id } });
 };
 
-const getPosts = async (parent, args, { models }, info) => {
+const getPosts = async (parent, args, { models, request }, info) => {
+  await isAuthenticated(request, models);
+
   const conditions = {};
 
   if (args.title) {
@@ -20,7 +25,9 @@ const getPosts = async (parent, args, { models }, info) => {
   return posts;
 };
 
-const createPost = async (parent, args, { models, pubsub }, info) => {
+const createPost = async (parent, args, { models, pubsub, request }, info) => {
+  await isAuthenticated(request, models);
+
   const isUserExists = await models.user.findUnique({
     where: { id: args.data.author },
   });
@@ -42,7 +49,9 @@ const createPost = async (parent, args, { models, pubsub }, info) => {
   return post;
 };
 
-const updatePost = async (parent, args, { models, pubsub }, info) => {
+const updatePost = async (parent, args, { models, pubsub, request }, info) => {
+  await isAuthenticated(request, models);
+
   const { id, title, body, published } = args.data;
   const currentPost = await models.post.findUnique({ where: { id } });
   const conditions = {};
@@ -79,13 +88,20 @@ const updatePost = async (parent, args, { models, pubsub }, info) => {
 
   const post = await models.post.update({
     where: { id },
-    data: { ...conditions },
+    data: { ...conditions, updatedAt: Date.now() },
   });
 
   return post;
 };
 
-const deletePost = async (parent, { id }, { models, pubsub }, info) => {
+const deletePost = async (
+  parent,
+  { id },
+  { models, pubsub, request },
+  info
+) => {
+  await isAuthenticated(request, models);
+
   const isPostExist = await models.post.findUnique({ where: { id } });
 
   if (!isPostExist) {
@@ -108,7 +124,7 @@ const deletePost = async (parent, { id }, { models, pubsub }, info) => {
 
 const PostSubscription = {
   post: {
-    subscribe(_, args, { pubsub }, info) {
+    async subscribe(_, args, { pubsub }, info) {
       return pubsub.asyncIterator('post');
     },
   },

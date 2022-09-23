@@ -2,6 +2,13 @@ const ERROR_MESSAGE = {
   CustomAlreadyExisted: 'The $property already existed',
   CustomNotExist: 'The $property does not exist',
   CustomNotFound: '$property not found',
+  CustomNotAuthenticated: 'The $property is not authenticated',
 };
 
-export { ERROR_MESSAGE };
+const AUTHENTICATION_ERROR = {
+  NotAuthenticated: 'You are not authenticated',
+  AccessDenied: 'Access Denied',
+  InvalidAuthentication: 'Your email or password is incorrect',
+};
+
+export { ERROR_MESSAGE, AUTHENTICATION_ERROR };

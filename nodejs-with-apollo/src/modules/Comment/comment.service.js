@@ -1,8 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { throwNewError } from '../../helpers';
 import { SUBSCRIPTION_TYPE } from '../../CONST/subscription';
+import { isAuthenticated } from '../../utils/authentication';
 
-const getComments = async (parent, { data }, { models }, info) => {
+const getComments = async (parent, { data }, { models, request }, info) => {
+  await isAuthenticated(request, models);
+
   const conditions = {};
 
   if (data && data.author) {
@@ -18,7 +21,9 @@ const getComments = async (parent, { data }, { models }, info) => {
   return comments;
 };
 
-const createComment = async (_, args, { models, pubsub }, info) => {
+const createComment = async (_, args, { models, pubsub, request }, info) => {
+  await isAuthenticated(request, models);
+
   const isUserExists = await models.user.findUnique({
     where: { id: args.data.author },
   });
@@ -52,10 +57,12 @@ const createComment = async (_, args, { models, pubsub }, info) => {
   return comment;
 };
 
-const updateComment = async (_, args, { models, pubsub }, info) => {
+const updateComment = async (_, args, { models, pubsub, request }, info) => {
+  await isAuthenticated(request, models);
+
   const { id, text } = args.data;
   const isCommentExist = models.comment.findUnique({ where: { id } });
-  const data = {};
+  const data = { updatedAt: Date.now() };
 
   if (!isCommentExist) {
     throwNewError('CustomNotExist', 'comment');
@@ -77,7 +84,9 @@ const updateComment = async (_, args, { models, pubsub }, info) => {
   return comment;
 };
 
-const deleteComment = async (_, { id }, { models, pubsub }, info) => {
+const deleteComment = async (_, { id }, { models, pubsub, request }, info) => {
+  await isAuthenticated(request, models);
+
   const isCommentExist = models.comment.findUnique({ where: { id } });
 
   if (!isCommentExist) {

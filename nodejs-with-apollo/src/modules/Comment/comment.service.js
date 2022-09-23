@@ -6,7 +6,7 @@ import { isAuthenticated } from '../../utils/authentication';
 const getComments = async (parent, { data }, { models, request }, info) => {
   await isAuthenticated(request, models);
 
-  const conditions = {};
+  const conditions = { published: true };
 
   if (data && data.author) {
     conditions.author = data.author;
@@ -22,10 +22,10 @@ const getComments = async (parent, { data }, { models, request }, info) => {
 };
 
 const createComment = async (_, args, { models, pubsub, request }, info) => {
-  await isAuthenticated(request, models);
+  const user = await isAuthenticated(request, models);
 
   const isUserExists = await models.user.findUnique({
-    where: { id: args.data.author },
+    where: { id: user.id },
   });
   const isPostExists = await models.post.findMany({
     where: { id: args.data.post, published: true },
@@ -42,7 +42,7 @@ const createComment = async (_, args, { models, pubsub, request }, info) => {
   const data = {
     id: uuidv4(),
     text: args.data.text,
-    author: args.data.author,
+    author: user.id,
     post: args.data.post,
   };
 
@@ -58,10 +58,12 @@ const createComment = async (_, args, { models, pubsub, request }, info) => {
 };
 
 const updateComment = async (_, args, { models, pubsub, request }, info) => {
-  await isAuthenticated(request, models);
+  const user = await isAuthenticated(request, models);
 
   const { id, text } = args.data;
-  const isCommentExist = models.comment.findUnique({ where: { id } });
+  const isCommentExist = models.comment.findUnique({
+    where: { id, author: user.id },
+  });
   const data = { updatedAt: Date.now() };
 
   if (!isCommentExist) {
@@ -73,7 +75,7 @@ const updateComment = async (_, args, { models, pubsub, request }, info) => {
   }
 
   const comment = await models.comment.update({
-    where: { id },
+    where: { id, author: user.id },
     data,
   });
 
@@ -85,15 +87,17 @@ const updateComment = async (_, args, { models, pubsub, request }, info) => {
 };
 
 const deleteComment = async (_, { id }, { models, pubsub, request }, info) => {
-  await isAuthenticated(request, models);
+  const user = await isAuthenticated(request, models);
 
-  const isCommentExist = models.comment.findUnique({ where: { id } });
+  const isCommentExist = models.comment.findUnique({
+    where: { id, user: user.id },
+  });
 
   if (!isCommentExist) {
     throwNewError('CustomNotExist', 'comment');
   }
 
-  const comment = await models.comment.delete({ where: { id } });
+  const comment = await models.comment.delete({ where: { id, user: user.id } });
 
   pubsub.publish(`comment ${comment.post}`, {
     comment: { mutation: SUBSCRIPTION_TYPE.DELETED, data: comment },

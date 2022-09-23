@@ -4,15 +4,15 @@ import { throwNewError } from '../../helpers';
 import { isAuthenticated } from '../../utils/authentication';
 
 const getOnePost = async (parent, { id }, { models, request }, info) => {
-  await isAuthenticated(request, models);
+  const user = await isAuthenticated(request, models);
 
-  return models.post.findUnique({ where: { id } });
+  return models.post.findUnique({ where: { id, author: user.id } });
 };
 
 const getPosts = async (parent, args, { models, request }, info) => {
-  await isAuthenticated(request, models);
+  const user = await isAuthenticated(request, models);
 
-  const conditions = {};
+  const conditions = { author: user.id };
 
   if (args.title) {
     conditions.OR = [
@@ -26,10 +26,10 @@ const getPosts = async (parent, args, { models, request }, info) => {
 };
 
 const createPost = async (parent, args, { models, pubsub, request }, info) => {
-  await isAuthenticated(request, models);
+  const user = await isAuthenticated(request, models);
 
   const isUserExists = await models.user.findUnique({
-    where: { id: args.data.author },
+    where: { id: user.id },
   });
 
   if (!isUserExists) {
@@ -37,7 +37,7 @@ const createPost = async (parent, args, { models, pubsub, request }, info) => {
   }
 
   const post = await models.post.create({
-    data: { id: uuidv4(), ...args.data },
+    data: { id: uuidv4(), ...args.data, author: user.id },
   });
 
   if (args.data.published) {
@@ -50,10 +50,12 @@ const createPost = async (parent, args, { models, pubsub, request }, info) => {
 };
 
 const updatePost = async (parent, args, { models, pubsub, request }, info) => {
-  await isAuthenticated(request, models);
+  const user = await isAuthenticated(request, models);
 
   const { id, title, body, published } = args.data;
-  const currentPost = await models.post.findUnique({ where: { id } });
+  const currentPost = await models.post.findUnique({
+    where: { id, author: user.id },
+  });
   const conditions = {};
 
   if (!currentPost) {
@@ -100,9 +102,11 @@ const deletePost = async (
   { models, pubsub, request },
   info
 ) => {
-  await isAuthenticated(request, models);
+  const user = await isAuthenticated(request, models);
 
-  const isPostExist = await models.post.findUnique({ where: { id } });
+  const isPostExist = await models.post.findUnique({
+    where: { id, author: user.id },
+  });
 
   if (!isPostExist) {
     throwNewError('CustomNotExist', 'post');
@@ -115,8 +119,8 @@ const deletePost = async (
   }
 
   const [post] = await Promise.all([
-    models.post.delete({ where: { id } }),
-    models.comment.deleteMany({ where: { postId: id } }),
+    models.post.delete({ where: { id, author: user.id } }),
+    models.comment.deleteMany({ where: { postId: id, author: user.id } }),
   ]);
 
   return post;

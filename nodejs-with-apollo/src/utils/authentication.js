@@ -2,6 +2,8 @@
 import { AuthenticationError } from 'apollo-server-core';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { USER_ROLE } from '../CONST/constant';
+import { AUTHENTICATION_ERROR } from '../CONST/error';
 import { throwNewError } from '../helpers';
 
 const generateJwtToken = ({ ...args }) => {
@@ -48,7 +50,21 @@ const isAuthenticated = async (req, models, next) => {
     throwNewError('CustomNotAuthenticated', 'user');
   }
 
+  return user;
+};
+
+const isAdmin = async (req, models) => {
+  const user = await isAuthenticated(req, models);
+
+  if (user.role !== USER_ROLE.ADMIN) {
+    throwNewError(
+      'CustomNotAuthenticated',
+      'user',
+      AUTHENTICATION_ERROR.PermissionDenied
+    );
+  }
+
   return true;
 };
 
-export { isAuthenticated, generateJwtToken, hashPassword };
+export { isAuthenticated, generateJwtToken, hashPassword, isAdmin };

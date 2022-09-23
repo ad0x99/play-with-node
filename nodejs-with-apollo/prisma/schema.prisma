@@ -16,6 +16,7 @@ model User {
   email     String    @unique
   password  String
   age       Int?
+  role      Role      @default(USER)
   Post      Post[]
   Comment   Comment[]
   createdAt DateTime  @default(now())
@@ -43,4 +44,9 @@ model Comment {
   post      String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
 }

@@ -45,7 +45,6 @@ input CreatePostInput {
   title: String!
   body: String!
   published: Boolean!
-  author: ID!
 }
 
 input UpdatePostInput {
@@ -62,7 +61,6 @@ input GetCommentInput {
 
 input CreateCommentInput {
   text: String!
-  author: ID!
   post: ID!
 }
 
@@ -73,11 +71,17 @@ input UpdateCommentInput {
 
 scalar Date
 
+enum ROLE {
+  ADMIN
+  USER
+}
+
 type User {
   id: ID!
   name: String!
   email: String!
   age: Int
+  role: ROLE!
   posts: [Post!]!
   comments: [Comment!]!
   createdAt: Date!

@@ -46,7 +46,6 @@ const typeDefs = `
     title: String!
     body: String!
     published: Boolean!
-    author: ID!
   }
 
   input UpdatePostInput {
@@ -63,7 +62,6 @@ const typeDefs = `
 
   input CreateCommentInput {
     text: String!
-    author: ID!
     post: ID!
   }
 
@@ -74,11 +72,17 @@ const typeDefs = `
 
   scalar Date
 
+  enum ROLE {
+    ADMIN
+    USER
+  }
+
   type User {
     id: ID!
     name: String!
     email: String!
     age: Int
+    role: ROLE!
     posts: [Post!]!
     comments: [Comment!]!
     createdAt: Date!

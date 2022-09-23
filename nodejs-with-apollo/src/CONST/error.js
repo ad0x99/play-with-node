@@ -9,6 +9,7 @@ const AUTHENTICATION_ERROR = {
   NotAuthenticated: 'You are not authenticated',
   AccessDenied: 'Access Denied',
   InvalidAuthentication: 'Your email or password is incorrect',
+  PermissionDenied: 'You do not have permission to do this action',
 };
 
 export { ERROR_MESSAGE, AUTHENTICATION_ERROR };

@@ -17,7 +17,11 @@ const login = async (parent, args, { models }) => {
 
   const isValidPassword = await bcrypt.compare(password, user.password);
   if (!isValidPassword) {
-    throwNewError(AUTHENTICATION_ERROR.InvalidAuthentication);
+    throwNewError(
+      'CustomNotAuthenticated',
+      'user',
+      AUTHENTICATION_ERROR.InvalidAuthentication
+    );
   }
 
   const token = await generateJwtToken({ id: user.id, email });

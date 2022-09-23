@@ -1,0 +1,137 @@
+type Query {
+  users(name: String): [User!]!
+  posts(title: String): [Post!]!
+  me: User!
+  post(id: ID!): Post!
+  comments(data: GetCommentInput): [Comment!]!
+}
+
+type Mutation {
+  createUser(data: CreateUserInput): User!
+  updateUser(data: UpdateUserInput): User!
+  deleteUser(id: ID!): User!
+
+  createPost(data: CreatePostInput): Post!
+  updatePost(data: UpdatePostInput): Post!
+  deletePost(id: ID!): Post!
+
+  createComment(data: CreateCommentInput): Comment!
+  updateComment(data: UpdateCommentInput): Comment!
+  deleteComment(id: ID!): Comment!
+
+  register(input: RegisterInput): User!
+  login(input: LoginInput): Login!
+}
+
+type Subscription {
+  post: PostSubscriptionPayload!
+  comment(postId: ID!): CommentSubscriptionPayload!
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  age: Int
+}
+
+input UpdateUserInput {
+  id: ID!
+  name: String
+  email: String
+  age: Int
+}
+
+input CreatePostInput {
+  title: String!
+  body: String!
+  published: Boolean!
+}
+
+input UpdatePostInput {
+  id: ID!
+  title: String
+  body: String
+  published: Boolean
+}
+
+input GetCommentInput {
+  author: ID
+  post: ID
+}
+
+input CreateCommentInput {
+  text: String!
+  post: ID!
+}
+
+input UpdateCommentInput {
+  id: ID!
+  text: String
+}
+
+scalar Date
+
+enum ROLE {
+  ADMIN
+  USER
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  age: Int
+  role: ROLE!
+  posts: [Post!]!
+  comments: [Comment!]!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String!
+  published: Boolean!
+  author: User!
+  comments: [Comment!]!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type Comment {
+  id: ID!
+  text: String!
+  author: User!
+  post: Post!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type PostSubscriptionPayload {
+  mutation: String!
+  data: Post!
+}
+
+type CommentSubscriptionPayload {
+  mutation: String!
+  data: Comment!
+}
+
+type Login {
+  id: ID!
+  name: String!
+  email: String!
+  token: String!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}

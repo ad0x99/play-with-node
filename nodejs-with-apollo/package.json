@@ -15,12 +15,22 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^4.3.1",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "express": "^4.18.1",
-    "graphql-yoga": "^1.14.10"
+    "graphql-yoga": "^1.14.10",
+    "prisma": "^4.3.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "apollo-server-core": "^3.10.2",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.2",
+    "graphql-middleware": "^6.1.32",
+    "graphql-shield": "^7.5.0",
+    "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.19"
   }
 }

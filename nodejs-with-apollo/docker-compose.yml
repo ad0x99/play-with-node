@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: mypostgresdb
+    hostname: postgres
+    ports:
+      - 2345:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: my_secret_password
+      POSTGRES_DB: node-graphql-prisma
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: always
+
+  node-application:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: node-application
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql://postgres:my_secret_password@${hostip}:2345/node-graphql-prisma
+      SECRET_TOKEN: this-is-a-secret-token-0x01
+      EXPIRES_IN: 24h
+      SALT_NUMBER: 10
+      ORIGIN_URL: https://localhost:3000/
+    depends_on:
+      - postgres
+    ports:
+      - '4000:4000'
+    restart: always
+    command: ['bash', '-c', 'chmod +x prisma.sh && ./prisma.sh']
+
+volumes:
+  postgres-data:

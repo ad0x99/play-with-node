@@ -1,0 +1,58 @@
+version: "3.9"
+services:
+    node-app:
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        container_name: node-application
+        volumes:
+            - .:/app
+        env_file:
+            - .env
+        environment:
+            - DB_PROTOCOL=${DB_PROTOCOL}
+            - DB_USER=${DB_USER}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - DB_HOST=${DB_HOST}
+            - DB_PORT=${DB_PORT}
+            - DB_NAME=${DB_NAME}
+        depends_on:
+            - db
+        ports:
+            - "4000:4000"
+        networks:
+            - expressots-network
+        restart: always
+
+    db:
+        image: mongo:latest
+        container_name: mongodb
+        hostname: mongodb
+        ports:
+            - 27017:27017
+        volumes:
+            - type: volume
+              source: MONGO_DATA
+              target: /data/db
+            - type: volume
+              source: MONGO_CONFIG
+              target: /data/configdb
+            - "$PWD/mongo-entrypoint/:/docker-entrypoint-initdb.d/"
+        command: [--auth]
+        env_file:
+            - .env
+        environment:
+            - MONGO_INITDB_DATABASE=${MONGO_INIT_DATABASE}
+            - MONGO_INITDB_ROOT_USERNAME=${DB_INIT_USERNAME}
+            - MONGO_INITDB_ROOT_PASSWORD=${DB_INIT_PWD}
+        networks:
+            - expressots-network
+        restart: on-failure
+
+networks:
+    expressots-network:
+        driver: bridge
+
+volumes:
+    MONGO_DATA:
+    MONGO_CONFIG:

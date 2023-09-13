@@ -70,4 +70,8 @@ DB_ROLE=readWrite
 
 ```sh
 pnpm run docker
+
+// or
+
+pnpm run docker:dev
 ```

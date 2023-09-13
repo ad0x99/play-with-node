@@ -4,6 +4,8 @@ import { ConnectOptions } from "mongoose";
 
 @provideSingleton(MongoDB)
 class MongoDB {
+    private report!: Report;
+
     /**
      * The function connects to a MongoDB database using the provided environment variables.
      */
@@ -32,7 +34,7 @@ class MongoDB {
                         : "null"
                 }`,
             ]);
-            Report.Error(error.message, undefined, "MongoDB");
+            this.report.error(error.message, undefined, "MongoDB");
         }
     }
 }

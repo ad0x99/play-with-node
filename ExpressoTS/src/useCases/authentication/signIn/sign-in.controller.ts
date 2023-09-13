@@ -1,4 +1,4 @@
-import { BaseController, StatusCode } from "@expressots/core";
+import { BaseController, StatusCode, ValidateDTO } from "@expressots/core";
 import {
     controller,
     httpPost,
@@ -6,7 +6,7 @@ import {
     response,
 } from "inversify-express-utils";
 import { SignInUserCase } from "./sign-in.usecase";
-import { ISignInUserRequestDTO, ISignInUserResponseDTO } from "./sign-in.dto";
+import { SignInDTO } from "./sign-in.dto";
 
 @controller("/sign-in")
 class SignInController extends BaseController {
@@ -14,11 +14,11 @@ class SignInController extends BaseController {
         super("sign-in-controller");
     }
 
-    @httpPost("/")
+    @httpPost("/", ValidateDTO(SignInDTO))
     signIn(
-        @requestBody() payload: ISignInUserRequestDTO,
+        @requestBody() payload: SignInDTO,
         @response() res: Response,
-    ): Promise<ISignInUserResponseDTO | void> {
+    ): Promise<SignInDTO | void> {
         return this.callUseCaseAsync(
             this.signInUserCase.signIn(payload),
             res,

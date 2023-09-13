@@ -5,6 +5,7 @@ import { ObjectId } from "mongoose";
 @provideSingleton(BaseRepository)
 export class BaseRepository<T> {
     protected resources!: ModelType<T>;
+    private report!: Report;
 
     getResource() {
         return this.resources;
@@ -20,7 +21,7 @@ export class BaseRepository<T> {
             .select(project);
 
         if (!resource) {
-            Report.Error(
+            this.report.error(
                 "Resource not found",
                 404,
                 this.getResource().toString(),

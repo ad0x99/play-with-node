@@ -1,6 +1,12 @@
-interface ISignInUserRequestDTO {
-    email: string;
-    password: string;
+import { IsEmail, IsNotEmpty } from "class-validator";
+
+class SignInDTO {
+    @IsNotEmpty()
+    @IsEmail()
+    email!: string;
+
+    @IsNotEmpty()
+    password!: string;
 }
 
 interface ISignInUserResponseDTO {
@@ -8,4 +14,4 @@ interface ISignInUserResponseDTO {
     name: string;
 }
 
-export { ISignInUserRequestDTO, ISignInUserResponseDTO };
+export { ISignInUserResponseDTO, SignInDTO };

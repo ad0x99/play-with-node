@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, Length } from "class-validator";
 
 class SignUpDTO {
     @IsNotEmpty()
@@ -10,13 +10,8 @@ class SignUpDTO {
     name!: string;
 
     @IsNotEmpty()
+    @Length(10)
     password!: string;
-}
-
-interface ISignUpUserRequestDTO {
-    email: string;
-    name: string;
-    password: string;
 }
 
 interface ISignUpUserResponseDTO {
@@ -24,4 +19,4 @@ interface ISignUpUserResponseDTO {
     name: string;
 }
 
-export { SignUpDTO, ISignUpUserRequestDTO, ISignUpUserResponseDTO };
+export { SignUpDTO, ISignUpUserResponseDTO };

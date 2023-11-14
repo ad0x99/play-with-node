@@ -13,19 +13,21 @@ app.use(cookieParser());
 app.get('/', (req, res) => {
   // If already had cookies
   if (req.cookies.profile) {
-    // Get the cookie value
+    /* Get the cookie value from req.cookie.profile.
+    Because the cookie is a base64 encoding, hence we have to decode it and convert it to a string */
     let cookie = new Buffer(req.cookies.profile, 'base64').toString();
 
-    // unserialize the cookie
+    /* Deserialize the cookie value. It takes the cookie value as input and converts it back into its original JavaScript object
+    representation. This allows the code to access the properties and values stored in the cookie. */
     const data = serialize.unserialize(cookie);
 
-    // If has username field in the extracted cookie
-    // Then send the response to the client the username as an output
+    /* Check if there is username field in the extracted cookie, then send the response which includes username value to the client
+     */
     if (data.username) {
       res.send(`Hello ${escape(data.username)}`);
     }
   } else {
-    // Assign a cookie for client if has no cookies yet
+    /* Otherwise, assign a cookie for client if has no cookies yet*/
     res.cookie(
       'profile',
       'eyJ1c2VybmFtZSI6IkpvaG4iLCJnZW5kZXIiOiJNYWxlIiwiQWdlIjogMzV9',
@@ -39,16 +41,16 @@ app.get('/', (req, res) => {
 app.get('/poc', (req, res) => {
   // If already had cookies
   if (req.cookies.profile) {
-    // unserialize the vulnerable input
+    // Deserialize the vulnerable input
     const data = unserialize(payload);
 
-    // If has username field in the extracted cookie
-    // Then send the response to the client the username as an output
+    /* Check if there is username field in the extracted data, then send the response which includes username value to the client
+     */
     if (data.username) {
       res.send(`Hello ${escape(data.username)}`);
     }
   } else {
-    // Assign a cookie for client if has no cookies yet
+    /* Otherwise, assign a cookie for client if has no cookies yet*/
     res.cookie(
       'profile',
       'eyJ1c2VybmFtZSI6IkpvaG4iLCJnZW5kZXIiOiJNYWxlIiwiQWdlIjogMzV9',
@@ -62,16 +64,16 @@ app.get('/poc', (req, res) => {
 app.get('/fix', (req, res) => {
   // If already had cookies
   if (req.cookies.profile) {
-    // unserialize the sanitized input
+    // Deserialize the sanitized input
     const data = unserialize(sanitizedPayload);
 
-    // If has username field in the extracted cookie
-    // Then send the response to the client the username as an output
+    /* Check if there is username field in the extracted data, then send the response which includes username value to the client
+     */
     if (data.username) {
       res.send(`Hello ${escape(data.username)}`);
     }
   } else {
-    // Assign a cookie for client if has no cookies yet
+    /* Otherwise, assign a cookie for client if has no cookies yet*/
     res.cookie(
       'profile',
       'eyJ1c2VybmFtZSI6IkpvaG4iLCJnZW5kZXIiOiJNYWxlIiwiQWdlIjogMzV9',
